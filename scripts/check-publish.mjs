@@ -26,7 +26,13 @@ const SECRETS = [
 ];
 
 const pack = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json'], { encoding: 'utf8' }));
-const files = pack[0].files.map((f) => f.path);
+// npm 11 prints a list, npm 12 an object keyed by package name.
+const entry = Array.isArray(pack) ? pack[0] : pack[JSON.parse(readFileSync('package.json', 'utf8')).name];
+if (!entry || !Array.isArray(entry.files)) {
+	console.error('Refusing to publish: could not read the file list from `npm pack --json`');
+	process.exit(1);
+}
+const files = entry.files.map((f) => f.path);
 const problems = files.filter((f) => !ALLOWED.has(f)).map((f) => `unexpected file: ${f}`);
 for (const f of files) {
 	const text = readFileSync(f, 'utf8');
