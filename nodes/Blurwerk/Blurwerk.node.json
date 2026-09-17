@@ -1,0 +1,11 @@
+{
+  "node": "n8n-nodes-blurwerk.blurwerk",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": ["Data & Storage", "Utility"],
+  "resources": {
+    "credentialDocumentation": [{ "url": "https://blurwerk.de/docs" }],
+    "primaryDocumentation": [{ "url": "https://blurwerk.de/docs" }]
+  },
+  "alias": ["blur", "face", "anonymize", "gdpr", "dsgvo", "pixelate", "redact", "privacy", "video"]
+}

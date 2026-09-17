@@ -1,0 +1,36 @@
+# Publishes to npm when a version tag (0.2.0, 1.0.0, ...) is pushed, with a
+# provenance statement: a signed record that this repository and this commit
+# built the package. n8n requires it before it verifies a community node.
+#
+# One-time setup on npmjs.com: package n8n-nodes-blurwerk → Settings →
+# Trusted Publisher → GitHub Actions, owner "BlurWerk", repository
+# "n8n-nodes-blurwerk", workflow "publish.yml". No token is stored anywhere.
+#
+# To release: bump "version" in package.json, commit, then
+#   git tag 0.2.0 && git push origin main 0.2.0
+name: Publish
+
+on:
+  push:
+    tags: ['*.*.*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # the short-lived identity npm trusts and signs with
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+      - name: The tag is the version
+        run: test "$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
+      - run: npm install -g npm@latest   # trusted publishing needs npm 11.5 or later
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg   # the tests make a clip
+      - run: npm ci --ignore-scripts
+      # Lints, builds, then `npm publish --provenance`; publishing runs the
+      # tests and scripts/check-publish.mjs first.
+      - run: npm run release
