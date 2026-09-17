@@ -4,7 +4,8 @@
 #
 # One-time setup on npmjs.com: package n8n-nodes-blurwerk → Settings →
 # Trusted Publisher → GitHub Actions, owner "BlurWerk", repository
-# "n8n-nodes-blurwerk", workflow "publish.yml". No token is stored anywhere.
+# "n8n-nodes-blurwerk", workflow "publish.yml", and under Allowed actions
+# tick "npm publish" (else: 403 OIDC permission denied). No token is stored.
 #
 # To release: bump "version" in package.json, commit, then
 #   git tag 0.2.0 && git push origin main 0.2.0
