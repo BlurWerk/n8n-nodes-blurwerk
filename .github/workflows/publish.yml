@@ -24,8 +24,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
+          # No registry-url: it writes a placeholder token that npm would try
+          # instead of GitHub's identity. npmjs.org is npm's default anyway.
           node-version: 22
-          registry-url: 'https://registry.npmjs.org'
       - name: The tag is the version
         run: test "$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
       # Trusted publishing needs npm 11.5 or later. Pinned to 11: npm 12
@@ -36,3 +37,5 @@ jobs:
       # Lints, builds, then `npm publish --provenance`; publishing runs the
       # tests and scripts/check-publish.mjs first.
       - run: npm run release
+        env:
+          NPM_CONFIG_LOGLEVEL: verbose   # shows the identity exchange if publishing is refused
