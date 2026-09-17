@@ -1,0 +1,314 @@
+{
+  "name": "Anonymize faces in videos dropped into a Google Drive folder",
+  "nodes": [
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0001",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        -420
+      ],
+      "parameters": {
+        "width": 460,
+        "height": 700,
+        "color": 4,
+        "content": "## Anonymize faces in videos from a Google Drive folder\n\n**Who it's for:** anyone who shares footage of other people — schools, event teams, agencies, public offices, researchers — and must blur faces first (GDPR).\n\n**What it does:** every video added to a Drive folder comes back into a second folder with every face mosaiced in every frame, in the same format and resolution. Location metadata is removed. Processing runs on blurwerk's own hardware in Germany.\n\n### How it works\n1. **New file in folder** checks the input folder every minute.\n2. **Is it a video?** skips anything that is not.\n3. **Download video** fetches the file.\n4. **Anonymize video** prices it from its own header, pays with prepaid credit, uploads it and waits for the result.\n5. **Finished?** sends the result to the output folder, or stops with the reason if it failed (a failed job is not charged).\n\n### Setup (5 minutes)\n1. Buy credit at [blurwerk.de/credit](https://blurwerk.de/credit?ref=n8n-template) and add the token as a **blurwerk API** credential.\n2. Connect **Google Drive** on the three Drive nodes.\n3. Pick the input folder in **New file in folder** and the output folder in **Upload to output folder**. Use two different folders.\n4. In **Anonymize video**, read and tick both declarations.\n5. Activate the workflow.\n\nSound is kept by default; set **Options → Audio** to *Disguise Voice* or *Mute* if voices must not be recognisable. Always check a result before publishing it."
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0002",
+      "name": "Section: find new videos",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -120
+      ],
+      "parameters": {
+        "width": 660,
+        "height": 300,
+        "color": 7,
+        "content": "### 1. Find new videos\nPolls the input folder. Other file types are ignored."
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0003",
+      "name": "Section: anonymize",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        700,
+        -120
+      ],
+      "parameters": {
+        "width": 300,
+        "height": 300,
+        "color": 7,
+        "content": "### 2. Anonymize\nWaits up to two hours. Processing takes about twice the video's length at 1080p."
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0004",
+      "name": "Section: deliver",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        -220
+      ],
+      "parameters": {
+        "width": 520,
+        "height": 480,
+        "color": 7,
+        "content": "### 3. Deliver\nThe anonymized file keeps the original name with `_anonymized` added."
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0010",
+      "name": "New file in folder",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        60,
+        20
+      ],
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "event": "fileCreated",
+        "options": {}
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0011",
+      "name": "Is it a video?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        280,
+        20
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5d2f0a3e-7c7e-4a0b-9d0e-3f1c2b4a0011",
+              "leftValue": "={{ $json.mimeType }}",
+              "rightValue": "video/",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0012",
+      "name": "Download video",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        500,
+        20
+      ],
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0013",
+      "name": "Anonymize video",
+      "type": "n8n-nodes-blurwerk.blurwerk",
+      "typeVersion": 1,
+      "position": [
+        780,
+        20
+      ],
+      "parameters": {
+        "operation": "anonymize",
+        "binaryPropertyName": "data",
+        "consentWithdrawal": false,
+        "consentCheck": false,
+        "wait": true,
+        "maxWait": 120,
+        "pollEvery": 30,
+        "download": true,
+        "options": {
+          "audio": "keep",
+          "sensitivity": "medium",
+          "coverage": "medium",
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0014",
+      "name": "Finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1100,
+        20
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5d2f0a3e-7c7e-4a0b-9d0e-3f1c2b4a0014",
+              "leftValue": "={{ $json.state }}",
+              "rightValue": "done",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0015",
+      "name": "Upload to output folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1340,
+        -80
+      ],
+      "parameters": {
+        "name": "={{ $binary.data.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0b5d2c6e-1a01-4c1e-9d51-5a3c1d0a0016",
+      "name": "Report failure",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        120
+      ],
+      "parameters": {
+        "errorMessage": "={{ $json.state === 'failed' ? 'blurwerk could not anonymize this video (job ' + $json.jobId + '; reason: ' + ($json.error || 'unknown') + '). A failed job is not charged.' : 'Job ' + $json.jobId + ' is still processing after the wait and is paid for. Fetch it later with the Get Result operation.' }}"
+      }
+    }
+  ],
+  "connections": {
+    "New file in folder": {
+      "main": [
+        [
+          {
+            "node": "Is it a video?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is it a video?": {
+      "main": [
+        [
+          {
+            "node": "Download video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Download video": {
+      "main": [
+        [
+          {
+            "node": "Anonymize video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anonymize video": {
+      "main": [
+        [
+          {
+            "node": "Finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finished?": {
+      "main": [
+        [
+          {
+            "node": "Upload to output folder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Report failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "pinData": {}
+}

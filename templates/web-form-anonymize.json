@@ -1,0 +1,232 @@
+{
+  "name": "Web form: upload a video, download it with every face blurred",
+  "nodes": [
+    {
+      "id": "7c1e4b2a-2b02-4d2f-8e62-6b4d2e1b0001",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        -380
+      ],
+      "parameters": {
+        "width": 460,
+        "height": 640,
+        "color": 4,
+        "content": "## Upload a video, get it back with every face blurred\n\n**Who it's for:** teams that need to hand a colleague, a client or the public an easy way to anonymize footage before it is shared — without giving them an account anywhere.\n\n**What it does:** publishes a web form. The person uploads a video, waits on the form, and their browser then downloads the anonymized file: every face mosaiced in every frame, same format and resolution, location metadata removed. Processing runs on blurwerk's own hardware in Germany. The download link works for 7 days.\n\n### How it works\n1. **Upload form** takes one video and a confirmation that the result will be checked.\n2. **Anonymize video** prices the file from its own header, pays with prepaid credit, uploads it and waits.\n3. **Finished?** sends the browser to the download, or shows why it failed (a failed job is not charged).\n\n### Setup (3 minutes)\n1. Buy credit at [blurwerk.de/credit](https://blurwerk.de/credit?ref=n8n-template) and add the token as a **blurwerk API** credential.\n2. In **Anonymize video**, read and tick both declarations.\n3. Activate the workflow and share the form's production URL.\n\nEvery upload is paid from your credit, so share the form only with people you trust, or set **Authentication** on the form. Sound is kept by default; change **Options → Audio** if voices must not be recognisable."
+      }
+    },
+    {
+      "id": "7c1e4b2a-2b02-4d2f-8e62-6b4d2e1b0002",
+      "name": "Section: upload and anonymize",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -120
+      ],
+      "parameters": {
+        "width": 560,
+        "height": 300,
+        "color": 7,
+        "content": "### 1. Upload and anonymize\nWaits up to an hour. Processing takes about twice the video's length at 1080p."
+      }
+    },
+    {
+      "id": "7c1e4b2a-2b02-4d2f-8e62-6b4d2e1b0003",
+      "name": "Section: answer the form",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        600,
+        -220
+      ],
+      "parameters": {
+        "width": 540,
+        "height": 480,
+        "color": 7,
+        "content": "### 2. Answer the form\nThe browser is sent straight to the file, or shown the reason it failed."
+      }
+    },
+    {
+      "id": "7c1e4b2a-2b02-4d2f-8e62-6b4d2e1b0010",
+      "name": "Upload form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        60,
+        20
+      ],
+      "parameters": {
+        "formTitle": "Anonymize a video",
+        "formDescription": "Upload one video. Every face in it is blurred, and your browser downloads the result when it is ready. Keep this page open; it takes about twice the video's length.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Video",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".mp4, .mov, .m4v, .mkv, .webm, .avi, .mts, .m2ts",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Confirmation",
+              "fieldType": "checkbox",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "I will check the result before I publish or share it"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "path": "anonymize-video",
+          "buttonLabel": "Anonymize"
+        }
+      }
+    },
+    {
+      "id": "7c1e4b2a-2b02-4d2f-8e62-6b4d2e1b0011",
+      "name": "Anonymize video",
+      "type": "n8n-nodes-blurwerk.blurwerk",
+      "typeVersion": 1,
+      "position": [
+        320,
+        20
+      ],
+      "parameters": {
+        "operation": "anonymize",
+        "binaryPropertyName": "={{ Object.keys($input.item.binary || {})[0] }}",
+        "consentWithdrawal": false,
+        "consentCheck": false,
+        "wait": true,
+        "maxWait": 60,
+        "pollEvery": 15,
+        "download": false,
+        "options": {
+          "audio": "keep",
+          "sensitivity": "medium",
+          "coverage": "medium",
+          "lang": "en"
+        }
+      }
+    },
+    {
+      "id": "7c1e4b2a-2b02-4d2f-8e62-6b4d2e1b0012",
+      "name": "Finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        660,
+        20
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9a3b1c2d-4e5f-4a6b-8c7d-2e1f0a3b0012",
+              "leftValue": "={{ $json.state }}",
+              "rightValue": "done",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "7c1e4b2a-2b02-4d2f-8e62-6b4d2e1b0013",
+      "name": "Send to the download",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        900,
+        -80
+      ],
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "redirect",
+        "redirectUrl": "={{ $json.downloadUrl }}"
+      }
+    },
+    {
+      "id": "7c1e4b2a-2b02-4d2f-8e62-6b4d2e1b0014",
+      "name": "Show what went wrong",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        900,
+        120
+      ],
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "text",
+        "completionTitle": "={{ $json.state === 'failed' ? 'This video could not be anonymized' : 'Still processing' }}",
+        "completionMessage": "={{ $json.state === 'failed' ? 'The video could not be processed. A failed job is not charged. Reference: ' + $json.jobId : 'The video is taking longer than this page waits. It is paid for; ask the owner of this form for the result, reference ' + $json.jobId + '.' }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Upload form": {
+      "main": [
+        [
+          {
+            "node": "Anonymize video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anonymize video": {
+      "main": [
+        [
+          {
+            "node": "Finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finished?": {
+      "main": [
+        [
+          {
+            "node": "Send to the download",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Show what went wrong",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "pinData": {}
+}

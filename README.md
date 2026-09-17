@@ -58,6 +58,12 @@ schedule.
   the result when its download link expires.
 - See [blurwerk.de/datenschutz](https://blurwerk.de/datenschutz).
 
+## Example workflows
+
+[`templates/`](templates/) has two workflows ready to import: a Google Drive
+folder whose videos come back anonymized in another folder, and a web form
+that hands the uploader the anonymized file.
+
 ## Development
 
 ```sh
