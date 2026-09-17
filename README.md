@@ -27,7 +27,7 @@ token (`bw_…`) **once**. Paste it into a new **blurwerk API** credential.
 | **Report Problem** | Reports that a delivered result is not usable. It is refunded, and the result is deleted. |
 
 **Anonymize Video** requires two declarations, both mandatory: that work may
-start at once (§ 356(4) BGB, which ends the 14-day withdrawal right), and that
+start at once (German Civil Code, § 356(4), which ends the 14-day withdrawal right), and that
 the result will be checked before it is published.
 
 **Options:**

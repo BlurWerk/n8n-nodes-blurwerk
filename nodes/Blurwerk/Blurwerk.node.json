@@ -7,5 +7,5 @@
     "credentialDocumentation": [{ "url": "https://blurwerk.de/docs" }],
     "primaryDocumentation": [{ "url": "https://blurwerk.de/docs" }]
   },
-  "alias": ["blur", "face", "anonymize", "gdpr", "dsgvo", "pixelate", "redact", "privacy", "video"]
+  "alias": ["blur", "face", "anonymize", "gdpr", "pixelate", "redact", "privacy", "video"]
 }

@@ -150,7 +150,7 @@ export class BlurwerkClient {
 	async order(input: OrderInput) {
 		if (!input.consentWithdrawal || !input.consentCheck) {
 			throw new BlurwerkError(
-				'Both declarations are required: that work may start at once (§ 356(4) BGB) ' +
+				'Both declarations are required: that work may start at once (German Civil Code, § 356(4)) ' +
 					'and that the result will be checked before it is published.',
 			);
 		}

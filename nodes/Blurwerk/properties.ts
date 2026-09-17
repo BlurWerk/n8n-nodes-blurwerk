@@ -37,7 +37,7 @@ export const properties: INodeProperties[] = [
 		default: false,
 		required: true,
 		description:
-			'Whether the person you act for asked for work to begin at once and accepts losing the 14-day right of withdrawal (§ 356(4) BGB). Required.',
+			'Whether the person you act for asked for work to begin at once and accepts losing the 14-day right of withdrawal (German Civil Code, § 356(4)). Required.',
 		...on('anonymize'),
 	},
 	{
