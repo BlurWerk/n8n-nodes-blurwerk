@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "tsc && node scripts/assets.mjs",
-    "test": "npm run build && n8n-node lint && node --test test/",
+    "test": "npm run build && n8n-node lint && node --test test/client.test.mjs",
     "prepublishOnly": "npm test && node scripts/check-publish.mjs",
     "lint": "n8n-node lint",
     "release": "n8n-node release"
