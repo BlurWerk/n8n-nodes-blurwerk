@@ -1,38 +1,15 @@
 import type {
 	IDataObject,
 	IExecuteFunctions,
-	IHttpRequestOptions,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
 import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-import { BlurwerkClient, BlurwerkError, type Http, type Options } from './client';
+import { BlurwerkClient, BlurwerkError, type Options } from './client';
 import { properties } from './properties';
-
-// n8n's own request helper, so the instance's proxy and TLS settings apply.
-function httpFor(ctx: IExecuteFunctions): Http {
-	return async (req) => {
-		const options: IHttpRequestOptions = {
-			method: req.method,
-			url: req.url,
-			headers: req.headers,
-			returnFullResponse: true,
-			ignoreHttpStatusErrors: true,
-			json: !req.raw && !req.binary,
-		};
-		if (req.json !== undefined) options.body = req.json as IDataObject;
-		if (req.raw) options.body = req.raw;
-		if (req.binary) options.encoding = 'arraybuffer';
-		const res = (await ctx.helpers.httpRequest(options)) as {
-			statusCode: number;
-			headers: Record<string, string>;
-			body: unknown;
-		};
-		return { status: res.statusCode, headers: res.headers || {}, body: res.body };
-	};
-}
+import { httpFor } from './transport';
 
 // A finished job becomes an item carrying the video, when there is one.
 async function finish(ctx: IExecuteFunctions, api: BlurwerkClient, jobId: string,
@@ -126,6 +103,12 @@ export class Blurwerk implements INodeType {
 				const op = this.getNodeParameter('operation', i) as string;
 				if (op === 'balance') {
 					out.push({ json: (await api.balance()) as IDataObject, pairedItem: i });
+				} else if (op === 'topUp') {
+					out.push({
+						json: (await api.topUpLink(this.getNodeParameter('topUpAmount', i) as number,
+							this.getNodeParameter('receiptEmail', i, '') as string)) as IDataObject,
+						pairedItem: i,
+					});
 				} else if (op === 'status') {
 					const jobId = this.getNodeParameter('jobId', i) as string;
 					out.push(await finish(this, api, jobId, (await api.status(jobId)) as IDataObject, i));

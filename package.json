@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-blurwerk",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "n8n node for blurwerk: anonymize video — every face mosaiced, voices disguised or muted, metadata removed. Processed in Germany.",
   "keywords": [
     "n8n-community-node-package",
@@ -34,7 +34,8 @@
       "dist/credentials/BlurwerkApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/Blurwerk/Blurwerk.node.js"
+      "dist/nodes/Blurwerk/Blurwerk.node.js",
+      "dist/nodes/Blurwerk/BlurwerkTrigger.node.js"
     ]
   },
   "devDependencies": {

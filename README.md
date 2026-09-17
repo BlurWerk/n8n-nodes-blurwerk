@@ -25,6 +25,15 @@ token (`bw_…`) **once**. Paste it into a new **blurwerk API** credential.
 | **Get Result** | Returns the state of an order and, once it is done, the video. Use it after an **Anonymize Video** run that did not wait. |
 | **Get Balance** | Returns the remaining credit. |
 | **Report Problem** | Reports that a delivered result is not usable. It is refunded, and the result is deleted. |
+| **Create Top-Up Link** | Returns a card payment link that adds credit to the token in this credential. Whoever opens it pays, and the credential keeps working with the larger balance. |
+
+## Trigger
+
+**blurwerk Trigger → Credit Running Low** starts a workflow when the balance
+falls below a threshold, for example to send yourself a top-up link. It fires
+once per low spell: further orders while the balance is low do not fire it
+again, and after credit is added the next low balance does. A manual test run
+always shows the current balance.
 
 **Anonymize Video** requires two declarations, both mandatory: that work may
 start at once (German Civil Code, § 356(4), which ends the 14-day withdrawal right), and that

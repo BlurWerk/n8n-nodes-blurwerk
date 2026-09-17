@@ -16,6 +16,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { BlurwerkClient, BlurwerkError } = require('../dist/nodes/Blurwerk/client.js');
 const { Blurwerk } = require('../dist/nodes/Blurwerk/Blurwerk.node.js');
+const { BlurwerkTrigger } = require('../dist/nodes/Blurwerk/BlurwerkTrigger.node.js');
 
 const dir = mkdtempSync(join(tmpdir(), 'bw-n8n-'));
 const clip = join(dir, 'Familie Strand 2019.mp4');
@@ -26,9 +27,10 @@ const TOKEN = 'bw_test_token';
 const PART = 4096;               // small, so a 3 s clip needs several parts
 
 let server, base, seen, polls;
+const acct = { balance: 45, spent: 0 };
 
 function reset() {
-	seen = { quote: null, checkout: null, auth: [], parts: {}, complete: null };
+	seen = { quote: null, checkout: null, auth: [], parts: {}, complete: null, credits: null };
 	polls = 0;
 }
 
@@ -77,7 +79,15 @@ before(async () => {
 			res.writeHead(200, { 'content-type': 'video/mp4' });
 			return res.end(Buffer.from('ANONYMIZED'));
 		}
-		if (url.pathname === '/api/credits/balance') return send(200, { balance: 45, currency: 'EUR' });
+		if (url.pathname === '/api/credits/balance') {
+			if (req.headers.authorization !== `Bearer ${TOKEN}`) return send(401, { error: 'unknown token' });
+			return send(200, { ...acct, currency: 'EUR' });
+		}
+		if (url.pathname === '/api/credits' && req.method === 'POST') {
+			seen.credits = { body, auth: req.headers.authorization };
+			return send(200, { url: 'https://checkout.stripe.test/cs_7', reference: 'cs_7',
+				amount: body.amount, currency: 'EUR', top_up: true });
+		}
 		send(404, { error: 'no such route' });
 	});
 	await new Promise((r) => server.listen(0, '127.0.0.1', r));
@@ -230,4 +240,52 @@ test('without a wait passed in, the client waits with n8n\'s own helper', async 
 	const s = await api.waitFor('j1', 10_000, 40);
 	assert.equal(s.job.state, 'done');
 	assert.ok(Date.now() - started >= 70, 'it really waited between polls');
+});
+
+test('the node: a top-up link for the token in the credential', async () => {
+	reset();
+	const [[item]] = await new Blurwerk().execute.call(
+		context({ operation: 'topUp', topUpAmount: 50, receiptEmail: 'pay@example.com' }, {}));
+	assert.deepEqual([item.json.url, item.json.top_up], ['https://checkout.stripe.test/cs_7', true]);
+	assert.deepEqual(seen.credits, { body: { amount: 50, email: 'pay@example.com' }, auth: `Bearer ${TOKEN}` },
+		'the token names what is topped up, and the amount is a number');
+});
+
+// --- the trigger: once per low spell ---------------------------------------------
+function pollContext(threshold, mode = 'trigger', store = {}) {
+	return {
+		store,
+		getMode: () => mode,
+		getWorkflowStaticData: () => store,
+		getNodeParameter: (name, fallback) => (name === 'threshold' ? threshold : fallback),
+		getCredentials: async () => ({ token: TOKEN, baseUrl: base }),
+		helpers: context({}, {}).helpers,
+	};
+}
+
+test('credit running low: fires once per low spell, and again after a top-up', async () => {
+	const store = {};
+	const poll = () => new BlurwerkTrigger().poll.call(pollContext(10, 'trigger', store));
+	Object.assign(acct, { balance: 45, spent: 0 });
+	assert.equal(await poll(), null, 'plenty of credit: nothing');
+	Object.assign(acct, { balance: 8, spent: 37 });
+	const fired = await poll();
+	assert.deepEqual([fired[0][0].json.balance, fired[0][0].json.low, fired[0][0].json.threshold], [8, true, 10]);
+	assert.equal(await poll(), null, 'still low: not again');
+	Object.assign(acct, { balance: 3, spent: 42 });
+	assert.equal(await poll(), null, 'spending further in the same spell: not again');
+	Object.assign(acct, { balance: 53, spent: 42 });
+	assert.equal(await poll(), null, 'topped up: nothing');
+	Object.assign(acct, { balance: 5, spent: 90 });
+	assert.ok(await poll(), 'low again after the top-up: fires');
+	assert.equal(await poll(), null);
+	Object.assign(acct, { balance: 45, spent: 0 });
+});
+
+test('credit running low: a manual test shows the balance, low or not', async () => {
+	const [[item]] = await new BlurwerkTrigger().poll.call(pollContext(10, 'manual'));
+	assert.deepEqual([item.json.balance, item.json.low], [45, false]);
+	const store = {};
+	await new BlurwerkTrigger().poll.call(pollContext(100, 'manual', store));
+	assert.deepEqual(store, {}, 'and does not use up the next real alert');
 });

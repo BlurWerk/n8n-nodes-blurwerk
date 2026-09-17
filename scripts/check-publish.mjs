@@ -11,7 +11,8 @@ const ALLOWED = new Set([
 	'dist/credentials/BlurwerkApi.credentials.js',
 	'dist/nodes/Blurwerk/Blurwerk.node.js', 'dist/nodes/Blurwerk/Blurwerk.node.json',
 	'dist/nodes/Blurwerk/blurwerk.svg', 'dist/nodes/Blurwerk/client.js',
-	'dist/nodes/Blurwerk/properties.js', 'dist/nodes/Blurwerk/vendor/probe.js',
+	'dist/nodes/Blurwerk/properties.js', 'dist/nodes/Blurwerk/transport.js',
+	'dist/nodes/Blurwerk/BlurwerkTrigger.node.js', 'dist/nodes/Blurwerk/BlurwerkTrigger.node.json', 'dist/nodes/Blurwerk/vendor/probe.js',
 	'dist/nodes/Blurwerk/vendor/probe-stream.js',
 ]);
 const SECRETS = [

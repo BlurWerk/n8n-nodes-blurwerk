@@ -12,9 +12,11 @@ export const properties: INodeProperties[] = [
 		options: [
 			{ name: 'Anonymize Video', value: 'anonymize', action: 'Anonymize a video',
 				description: 'Mosaic every face, optionally disguise or mute voices, and return the file' },
+			{ name: 'Create Top-Up Link', value: 'topUp', action: 'Create a link to add credit',
+				description: 'A card payment link that adds credit to this token, so the credential keeps working' },
+			{ name: 'Get Balance', value: 'balance', action: 'Get the credit balance' },
 			{ name: 'Get Result', value: 'status', action: 'Get the result of a job',
 				description: 'State of an order, and the anonymized video once it is done' },
-			{ name: 'Get Balance', value: 'balance', action: 'Get the credit balance' },
 			{ name: 'Report Problem', value: 'problem', action: 'Report a problem and get a refund',
 				description: 'A delivered result that is not usable is refunded and deleted' },
 		],
@@ -151,6 +153,26 @@ export const properties: INodeProperties[] = [
 			{ displayName: 'Height (Px)', name: 'height', type: 'number', default: 0 },
 			{ displayName: 'Frames per Second', name: 'fps', type: 'number', default: 25 },
 		],
+	},
+
+	// --- top-up -----------------------------------------------------------------
+	{
+		displayName: 'Amount (EUR)',
+		name: 'topUpAmount',
+		type: 'number',
+		default: 50,
+		required: true,
+		typeOptions: { minValue: 10, maxValue: 500, numberStepSize: 5 },
+		description: 'A multiple of 5, between 10 and 500. Whoever opens the link pays it by card.',
+		...on('topUp'),
+	},
+	{
+		displayName: 'E-Mail for the Receipt',
+		name: 'receiptEmail',
+		type: 'string',
+		placeholder: 'name@email.com',
+		default: '',
+		...on('topUp'),
 	},
 
 	// --- result / problem ----------------------------------------------------

@@ -138,6 +138,11 @@ export class BlurwerkClient {
 		return this.call('GET', '/api/credits/balance', undefined, true);
 	}
 
+	/** A card payment link that adds credit to THIS token (docs/API.md § 1b). */
+	async topUpLink(amount: number, email = '') {
+		return this.call('POST', '/api/credits', { amount, email }, true);
+	}
+
 	async status(jobId: string) {
 		return this.call<JobStatus>('GET', `/api/job/${encodeURIComponent(jobId)}`);
 	}

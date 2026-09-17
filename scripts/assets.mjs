@@ -8,5 +8,5 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const src = join(root, 'nodes', 'Blurwerk');
 const dst = join(root, 'dist', 'nodes', 'Blurwerk');
 mkdirSync(join(dst, 'vendor'), { recursive: true });
-for (const f of ['blurwerk.svg', 'Blurwerk.node.json']) copyFileSync(join(src, f), join(dst, f));
+for (const f of ['blurwerk.svg', 'Blurwerk.node.json', 'BlurwerkTrigger.node.json']) copyFileSync(join(src, f), join(dst, f));
 for (const f of readdirSync(join(src, 'vendor')).filter((n) => n.endsWith('.js'))) copyFileSync(join(src, 'vendor', f), join(dst, 'vendor', f));
